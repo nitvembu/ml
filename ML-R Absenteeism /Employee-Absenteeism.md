@@ -128,7 +128,7 @@ str(test_data)
 1. _train_data_ has two attributes as _factors_ : _Age_ and _Work.load.Average.day_<br/>
 2. Attribute _work.load.Average.day_  in _test_data_  has a different name.<br/> 
 
-**3. Indentified unknown levels "0" and "R" in attribute _Age_ in _train_data_**
+**3. Identified unknown levels "0" and "R" in attribute _Age_ in _train_data_**
 
 ```r
 levels_train_data_age <- levels(train_data$Age) 
@@ -609,16 +609,16 @@ rf_model
 ##                      Number of trees: 100
 ## No. of variables tried at each split: 4
 ## 
-##         OOB estimate of  error rate: 48.71%
+##         OOB estimate of  error rate: 49.02%
 ## Confusion matrix:
 ##    0  1  2  3  4   5  6 class.error
 ## 0 36  0  1  0  0   0  0  0.02702703
-## 1  0 25 25  8  7  17  2  0.70238095
-## 2  0 18 78 17  7  18  0  0.43478261
-## 3  0 10 26 34 14  12  3  0.65656566
-## 4  0  4 14  8 20  18  0  0.68750000
-## 5  0 11 10  7  6 134 14  0.26373626
-## 6  0  3  1  3  2  36 12  0.78947368
+## 1  0 31 25  7  4  16  1  0.63095238
+## 2  0 20 66 24 12  16  0  0.52173913
+## 3  0  9 25 35 14  14  2  0.64646465
+## 4  0  7 10 13 19  13  2  0.70312500
+## 5  0 12 10  9  8 134  9  0.26373626
+## 6  0  2  1  2  2  34 16  0.71929825
 ```
 
 ```r
@@ -628,7 +628,7 @@ print(accuracy_test)
 ```
 
 ```
-## [1] 87.83784
+## [1] 87.97297
 ```
 
 ## Principal Component Analysis
@@ -890,16 +890,16 @@ rf_model
 ##                      Number of trees: 100
 ## No. of variables tried at each split: 4
 ## 
-##         OOB estimate of  error rate: 50.98%
+##         OOB estimate of  error rate: 50.38%
 ## Confusion matrix:
 ##    0  1  2  3  4   5  6 class.error
 ## 0 36  0  1  0  0   0  0  0.02702703
-## 1  0 27 22  8  6  19  2  0.67857143
-## 2  0 18 71 19 11  18  1  0.48550725
-## 3  0  9 26 34 15  13  2  0.65656566
-## 4  0  7 14 12 15  14  2  0.76562500
-## 5  0  7 14  9  6 131 15  0.28021978
-## 6  0  3  1  2  2  39 10  0.82456140
+## 1  0 24 27 10  5  16  2  0.71428571
+## 2  0 21 67 21 11  17  1  0.51449275
+## 3  0  9 26 35 14  12  3  0.64646465
+## 4  0  8 13  8 18  15  2  0.71875000
+## 5  0 10 12  6  8 136 10  0.25274725
+## 6  0  2  2  4  2  35 12  0.78947368
 ```
 
 
@@ -909,68 +909,68 @@ round(importance(rf_model), 3)
 
 ```
 ##                                      0      1      2     3      4      5
-## ID                              -0.312  5.125  5.822 7.699  3.183  5.561
-## Reason.for.absence               8.317 11.354 14.648 9.467  6.237 15.507
-## Month.of.absence                 3.058  6.844  5.947 8.579  1.799  1.959
-## Day.of.the.week                 -0.355 -0.233  1.016 3.442  4.401 -0.091
-## Seasons                          1.053  3.889  7.341 3.274  2.054  0.151
-## Transportation.expense           2.596  3.310  5.057 4.629  2.394  5.645
-## Distance.from.Residence.to.Work  1.062  3.232  2.523 5.005  2.811  2.609
-## Service.time                     0.814  5.837  3.270 4.865  1.419  2.328
-## Age                              1.369  4.996  2.746 3.385  3.125  2.886
-## Work.load.Average.day           -0.562  2.267  4.892 6.303 -0.710  1.133
-## Hit.target                       0.667  2.883  4.476 3.579  0.244  0.688
-## Disciplinary.failure            16.736  4.423  6.577 6.545  2.247  9.244
-## Education                        0.000  1.543  0.356 2.951  0.535  0.497
-## Son                             -1.087  3.644  3.090 4.167  4.355  2.610
-## Social.drinker                   0.235  2.562  2.538 3.541 -0.379 -0.027
-## Social.smoker                    1.005  0.024  2.464 1.612 -0.594  0.421
-## Pet                             -0.580  4.005  2.016 3.179  2.912  0.834
-## Weight                           2.221  3.902  3.167 3.382  2.002  2.565
-## Height                          -0.259  4.256  1.653 4.490  3.129  1.466
-## Body.mass.index                 -0.752  3.914  3.994 4.489  1.990  2.932
+## ID                              -1.131  4.438  4.317 5.778  5.230  6.362
+## Reason.for.absence              10.724 12.250 17.724 9.316 10.827 18.065
+## Month.of.absence                 1.170  5.368  6.267 7.721  1.999  3.354
+## Day.of.the.week                  0.799 -2.187 -0.644 1.682  4.434  2.427
+## Seasons                          2.263  5.714  5.829 3.594  3.970  1.566
+## Transportation.expense           3.253  5.243  4.607 7.200  4.664  6.157
+## Distance.from.Residence.to.Work  0.597  2.687  2.786 4.986  2.824  3.889
+## Service.time                     1.447  5.616  3.708 4.515  0.791  2.298
+## Age                             -0.101  3.667  3.373 3.656  4.394  5.305
+## Work.load.Average.day           -0.411  3.437  5.005 5.279  0.009  1.756
+## Hit.target                       0.618  3.002  4.721 3.933  0.383  1.300
+## Disciplinary.failure            13.329  4.545  4.971 4.229  2.943  8.716
+## Education                        0.000  1.078  0.827 2.327 -0.207  0.190
+## Son                              2.606  3.459  1.769 5.385  6.425  3.938
+## Social.drinker                   0.290  1.553  3.392 4.251 -0.035 -0.391
+## Social.smoker                   -1.005 -0.063  0.476 0.319 -0.031 -0.310
+## Pet                              0.221  2.268  1.137 1.975 -1.242  1.659
+## Weight                           1.483  3.130  2.224 4.747  4.598  4.626
+## Height                          -0.104  1.916  2.213 3.982  3.533  1.510
+## Body.mass.index                  1.571  4.645  2.583 5.316  1.187  3.493
 ##                                      6 MeanDecreaseAccuracy
-## ID                               2.528               10.899
-## Reason.for.absence              10.301               21.385
-## Month.of.absence                 1.149               11.150
-## Day.of.the.week                  3.361                3.978
-## Seasons                          0.917                6.820
-## Transportation.expense           3.862                8.503
-## Distance.from.Residence.to.Work  1.972                5.601
-## Service.time                     0.659                6.559
-## Age                              2.214                7.352
-## Work.load.Average.day           -2.201                5.774
-## Hit.target                       0.609                5.249
-## Disciplinary.failure             3.470               16.345
-## Education                       -0.875                1.520
-## Son                              1.294                6.250
-## Social.drinker                   3.023                4.027
-## Social.smoker                    2.058                2.522
-## Pet                              0.248                4.709
-## Weight                           2.422                7.648
-## Height                           2.701                6.799
-## Body.mass.index                  1.166                7.416
+## ID                               1.323                9.489
+## Reason.for.absence              14.630               27.025
+## Month.of.absence                 1.526               10.928
+## Day.of.the.week                  3.321                3.381
+## Seasons                          1.086                8.623
+## Transportation.expense           1.920               10.497
+## Distance.from.Residence.to.Work  0.687                6.665
+## Service.time                     1.837                6.245
+## Age                              1.546                7.828
+## Work.load.Average.day           -0.647                6.376
+## Hit.target                       1.237                6.961
+## Disciplinary.failure             3.193               12.564
+## Education                       -0.615                1.931
+## Son                              1.306                7.432
+## Social.drinker                   3.775                4.854
+## Social.smoker                   -1.327               -0.296
+## Pet                              1.089                2.795
+## Weight                           3.693                7.966
+## Height                           2.580                5.095
+## Body.mass.index                  1.070                7.586
 ##                                 MeanDecreaseGini
-## ID                                        18.530
-## Reason.for.absence                        84.257
-## Month.of.absence                          40.494
-## Day.of.the.week                           36.849
-## Seasons                                   21.919
-## Transportation.expense                    16.253
-## Distance.from.Residence.to.Work           13.959
-## Service.time                              12.620
-## Age                                       14.501
-## Work.load.Average.day                     46.227
-## Hit.target                                36.231
-## Disciplinary.failure                      26.285
-## Education                                  3.395
-## Son                                        9.596
-## Social.drinker                             3.731
-## Social.smoker                              1.933
-## Pet                                        6.894
-## Weight                                    13.675
-## Height                                    12.660
-## Body.mass.index                           11.530
+## ID                                        18.363
+## Reason.for.absence                        88.969
+## Month.of.absence                          40.022
+## Day.of.the.week                           35.440
+## Seasons                                   22.035
+## Transportation.expense                    19.539
+## Distance.from.Residence.to.Work           13.540
+## Service.time                              11.555
+## Age                                       13.076
+## Work.load.Average.day                     45.548
+## Hit.target                                38.708
+## Disciplinary.failure                      23.571
+## Education                                  3.433
+## Son                                        9.203
+## Social.drinker                             4.734
+## Social.smoker                              1.516
+## Pet                                        6.897
+## Weight                                    16.248
+## Height                                    12.954
+## Body.mass.index                           13.141
 ```
 
 ```r

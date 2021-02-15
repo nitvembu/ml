@@ -403,7 +403,7 @@ corrplot(cor(train_data_clean_corr), order = "hclust", tl.col = 'black', tl.cex 
 str(train_data_clean_corr)
 ```
 
-```{r}
+```{r message=FALSE}
 train_data_clean_rm_cor <- train_data_clean
 train_data_clean_rm_cor$Weight <- NULL
 train_data_clean_rm_cor$Service.time <- NULL
