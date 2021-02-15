@@ -1,0 +1,444 @@
+---
+title: "Employee Absenteeism"
+author: "Nithya Vembu"
+date: "2/15/2021"
+output: 
+  html_document:
+    keep_md: yes
+---
+
+```{r setup, message=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Importing Required Libraries 
+```{r message=FALSE, warning=FALSE, error=FALSE}
+#install.packages("tidyverse", repos = "http://cran.us.r-project.org")
+library(tidyverse)
+#install.packages("ggplot2", repos = "http://cran.us.r-project.org")
+library(ggplot2)
+#install.packages("VIM", repos = "http://cran.us.r-project.org")
+library(VIM)
+#install.packages("plyr", repos = "http://cran.us.r-project.org")
+library(plyr)
+#install.packages("dplyr", repos = "http://cran.us.r-project.org")
+#library(dplyr)
+#install.packages("lubridate", repos = "http://cran.us.r-project.org")
+library(lubridate)
+#install.packages("constants", repos = "http://cran.us.r-project.org")
+library(constants)
+#install.packages("corrplot", repos = "http://cran.us.r-project.org")
+library(corrplot)
+#install.packages("rpart", repos = "http://cran.us.r-project.org")
+library(rpart)
+#install.packages("rpart.plot", repos = "http://cran.us.r-project.org")
+library(rpart.plot)
+#install.packages("e1071", repos = "http://cran.us.r-project.org")
+library(e1071)
+#install.packages("devtools", repos = "http://cran.us.r-project.org")
+library(devtools) 
+#install.packages("caret", repos = "http://cran.us.r-project.org")
+library(caret)
+install_github("vqv/ggbiplot")
+library(ggbiplot)
+#install.packages("randomForest", repos = "http://cran.us.r-project.org")
+library(randomForest)
+#install.packages("gridExtra", repos = "http://cran.us.r-project.org")
+library(gridExtra)
+```
+
+
+## Importing Data Files
+```{r}
+train_data <- read.table("/Users/nithyavembu/Downloads/Absenteeism_at_work_train.csv", header=TRUE, sep=",")
+test_data <- read.table("/Users/nithyavembu/Downloads/Absenteeism_at_work.csv", header=TRUE, sep = ";")
+```
+
+##Exploratory Data Analysis - Part I
+**1. Checking variable types in _train_data_ and _test_data_**
+```{r}
+str(train_data)
+str(test_data)
+```
+**2. Observation**<br/>
+1. _train_data_ has two attributes as _factors_ : _Age_ and _Work.load.Average.day_<br/>
+2. Attribute _work.load.Average.day_  in _test_data_  has a different name.<br/> 
+
+**3. Identified unknown levels "0" and "R" in attribute _Age_ in _train_data_**
+```{r}
+levels_train_data_age <- levels(train_data$Age) 
+print(levels_train_data_age)
+# Counting number of samples with "0" and "R"
+#count(train_data$Age == "R")
+#count(train_data$Age == "0")
+# Removing samples with NA values train_data
+train_data <- train_data[!train_data$Age %in% c("0","R"),]
+```
+
+**4. Converting attribute _Age_ from type _factor_ to _number_** 
+```{r}
+train_data$Age <- as.integer(as.character(train_data$Age))
+```
+
+**5. Rename attribute _work.load.Average.day_ in _test_data_**
+```{r}
+names(test_data)[names(test_data)=="Work.load.Average.day."] <- "Work.load.Average.day"
+```
+
+**6. Identified different variable format of attrbute _work.load.Average.day_ in _train_data_ and _test_data_ and converted them to a uniform format**<br/>
+```{r}
+train_data$Work.load.Average.day <- as.numeric(gsub(",", ".", gsub("\\.", "", train_data$Work.load.Average.day)))
+```
+
+##Handling Missing Values
+```{r}
+# Check for NA values
+sapply(train_data, function(x) sum(is.na(x)))
+```
+```{r}
+# Remove rows with NA values
+train_data_clean <- na.omit(train_data)
+```
+
+## Grouping target variable
+```{r}
+#Grouping target variable in Training Set
+train_data_clean$Absenteeism.Hours.Group[train_data_clean$Absenteeism.time.in.hours == 0] <- "0"
+train_data_clean$Absenteeism.Hours.Group[train_data_clean$Absenteeism.time.in.hours == 1] <- "1"
+train_data_clean$Absenteeism.Hours.Group[train_data_clean$Absenteeism.time.in.hours == 2] <- "2"
+train_data_clean$Absenteeism.Hours.Group[train_data_clean$Absenteeism.time.in.hours == 3] <- "3"
+train_data_clean$Absenteeism.Hours.Group[train_data_clean$Absenteeism.time.in.hours >=4 &  train_data_clean$Absenteeism.time.in.hours <=7] <- "4"
+train_data_clean$Absenteeism.Hours.Group[train_data_clean$Absenteeism.time.in.hours == 8] <- "5"
+train_data_clean$Absenteeism.Hours.Group[train_data_clean$Absenteeism.time.in.hours >= 9] <- "6"
+```
+
+```{r}
+# Grouping target variable in Testing Set
+test_data$Absenteeism.Hours.Group[test_data$Absenteeism.time.in.hours == 0] <- "0"
+test_data$Absenteeism.Hours.Group[test_data$Absenteeism.time.in.hours == 1] <- "1"
+test_data$Absenteeism.Hours.Group[test_data$Absenteeism.time.in.hours == 2] <- "2"
+test_data$Absenteeism.Hours.Group[test_data$Absenteeism.time.in.hours == 3] <- "3"
+test_data$Absenteeism.Hours.Group[test_data$Absenteeism.time.in.hours >=4 &  test_data$Absenteeism.time.in.hours <=7] <- "4"
+test_data$Absenteeism.Hours.Group[test_data$Absenteeism.time.in.hours == 8] <- "5"
+test_data$Absenteeism.Hours.Group[test_data$Absenteeism.time.in.hours >= 9] <- "6"
+```
+
+```{r}
+#Dropping Absenteeism from Train and Test Data
+train_data_clean$Absenteeism.time.in.hours <- NULL
+test_data$Absenteeism.time.in.hours <- NULL
+```
+
+```{r}
+# Converting Target Variable as Factors
+train_data_clean$Absenteeism.Hours.Group <- as.factor(train_data_clean$Absenteeism.Hours.Group)
+test_data$Absenteeism.Hours.Group <- as.factor(test_data$Absenteeism.Hours.Group)
+```
+
+**Checking var types for cleaned testing and training data set**
+```{r}
+str(train_data_clean)
+str(test_data)
+```
+
+
+## Exploratory Data Analysis - Part II
+**1. Corelation Plot**
+```{r}
+# temporary variable train_corr
+train_corr <- train_data_clean
+# change target group into numeric
+train_corr$Absenteeism.Hours.Group <- as.numeric(train_corr$Absenteeism.Hours.Group)
+# plot
+corrplot(cor(train_corr), order = "hclust", tl.col = 'black', tl.cex = .75)
+```
+<br/>**Observation from Corelation Plot**
+ <br/>1. variables _Weight_ and _Body.Mass.Index_ are highly corelated
+ <br/>2. variables _Service.time_ and _Age_ are highly corelated
+
+**<br/>2. Absentees by Month and Day of Week**
+```{r}
+# 1. Absentees by Month
+x <- train_data_clean[c("Month.of.absence", "Day.of.the.week")]
+x$Month.of.absence <- as.factor(x$Month.of.absence)
+x <- x %>%
+  mutate(Month.of.absence= fct_recode(Month.of.absence,'None'='0','Jan'='1','Feb'='2','Mar'='3','Apr'='4','May'='5',
+                                      'Jun'='6','Jul'='7','Aug'='8','Sep'='9','Oct'='10','Nov'='11','Dec'='12') )
+
+x$Day.of.the.week <- as.factor(x$Day.of.the.week)
+x <- x %>%
+  mutate(Day.of.the.week = fct_recode(Day.of.the.week,"Monday"="2","Tuesday"="3","Wednesday"="4","Thursday"="5","Friday"="6"))
+g <- ggplot(x, aes(Month.of.absence))
+g + geom_bar(aes(fill=Day.of.the.week), width = 0.5) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(x = "Month" ,y = "#Absentees", title= "Absenteeism across a Month and it's Day of the week")
+
+```
+**<br/>3. Absentees by Season**
+```{r}
+# 2. Absentees by Season
+x <- train_data_clean[c("Seasons")]
+x$Seasons <- as.factor(x$Seasons)
+x <- x %>%
+  mutate(Seasons= fct_recode(Seasons,'Summer'='1','Autumn'='2','Winter'='3','Spring'='4'))
+ggplot(x, aes(x =   Seasons,fill = Seasons)) + geom_bar() + 
+  labs(x = "Season" ,y = "#Absentees", title= "Absenteeism across Seasons")
+```
+**<br/>4. Absentees by Reasons**
+
+```{r}
+x <- count(train_data_clean, "Reason.for.absence")
+x$Reason.for.absence <- as.factor(x$Reason.for.absence)
+x <- x %>%
+  mutate(Reason.for.absence = fct_recode(Reason.for.absence,'Infectious,parasitic diseases'='0',
+                                         'Neoplasms'='1','Diseases of the blood'='2','Endocrine and metabolic diseases'='3','Mental and behavioural disorders'='4', 
+                                         'Diseases of the nervous system'='5','Diseases of the eye and adnexa'='6','Diseases of the ear and mastoid process'='7',
+                                         'Diseases of the circulatory system'='8','Diseases of the respiratory system'='9','Diseases of the digestive system'='10', 
+                                         'Diseases of the skin and subcutaneous tissue'='11','Diseases of the musculoskeletal system and connective tissue'='12', 
+                                         'Diseases of the genitourinary system'='13','Pregnancy, childbirth and the puerperium'='14','Certain conditions originating in the perinatal'='15', 
+                                         'Congenital malformations, deformations and chromosomal abnormalities'= '16','Symptoms, signs and abnormal clinical  findings'='17',
+                                         'Injury, poisoning and certain other consequences of external causes'= '18','causes of morbidity and mortality'='19',
+                                         'Factors influencing health status and contact with health services'='21','patient follow-up'='22','medical consultation'='23','blood donation'='24',
+                                         'laboratory examination'='25','unjustified absence'='26','physiotherapy'='27','dental consultation'='28'))
+
+ggplot(x,aes(x = Reason.for.absence, y= freq, fill= Reason.for.absence)) + geom_bar(stat = 'identity') + coord_flip() + theme(legend.position='none') +  
+  xlab('Reason for absence') + ylab('#Absentees')
+```
+**<br/>5. Absentees by Number of Pets**
+```{r}
+x <- train_data_clean[c("Pet")]
+x$Pet <- as.factor(x$Pet)
+g = ggplot(x, aes(Pet))
+g + geom_bar(aes(fill=Pet), width = 0.6) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(x = "#Pets" ,y = "#Absentees", title= "Absenteeism vs  #Pets")
+```
+**<br/>6. Absentees by Number of Children**
+```{r}
+x <- train_data_clean[c("Son")]
+x$Son <- as.factor(x$Son)
+g = ggplot(x, aes(Son))
+g + geom_bar(aes(fill=Son), width = 0.6) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(x = "#Children" ,y = "#Absentees", title= "Absenteeism vs #Children")
+```
+
+**<br/>7. Absentees by Social Drinking and Smoking**
+```{r}
+x <- train_data_clean[c("Social.drinker")]
+x$Social.drinker <- as.factor(x$Social.drinker)
+x <- x %>%
+  mutate(Social.drinker= fct_recode(Social.drinker,'No'='0','Yes'='1') )
+g = ggplot(x, aes(train_data_clean$Social.drinker))
+g <- g + geom_bar(aes(fill=Social.drinker), width = 0.6) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(x = "Social Drinker" ,y = "#Absentees", title= "Absenteeism vs Social Drinking")
+
+x <- train_data_clean[c("Social.smoker")]
+x$Social.smoker <- as.factor(x$Social.smoker)
+x <- x %>%
+  mutate(Social.smoker= fct_recode(Social.smoker,'No'='0','Yes'='1') )
+g1 = ggplot(x, aes(Social.smoker))
+g1 <- g1 + geom_bar(aes(fill=Social.smoker), width = 0.6) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(x = "Social Smoker" ,y = "#Absentees", title= "Absenteeism vs Social Smoking")
+grid.arrange(g,g1, nrow = 1)
+```
+
+**<br/>8. Absentees by Hit Target**
+```{r}
+x <- train_data_clean[c("Hit.target")]
+x$Hit.target <- as.factor(x$Hit.target)
+g = ggplot(x, aes(Hit.target))
+g + geom_bar(aes(fill=Hit.target), width = 0.6) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(x = "Hit Target Periodically" ,y = "#Absentees", title= "Absenteeism vs %Target Achievement")
+```
+
+**<br/>9. Absentees by Disciplinary Action**
+```{r}
+x <- train_data_clean[c("Disciplinary.failure")]
+x$Disciplinary.failure <- as.factor(x$Disciplinary.failure)
+x <- x %>%
+  mutate(Disciplinary.failure= fct_recode(Disciplinary.failure,'No'='0','Yes'='1') )
+g = ggplot(x, aes(Disciplinary.failure))
+g + geom_bar(aes(fill=Disciplinary.failure), width = 0.6) + 
+  theme(axis.text.x = element_text(angle=65, vjust=0.6)) + 
+  labs(x = "Disciplinary Action" ,y = "#Absentees", title= "Absenteeism vs Disciplinary Action")
+```
+
+**<br/>10. Absentees by Education**
+```{r}
+x <- train_data_clean[c("Education")]
+x$Education <- as.factor(x$Education)
+x <- x %>%
+  mutate(Education= fct_recode(Education,'highschool'='1','graduate'='2','postgraduate'='3','master& doctrate'='4') )
+g = ggplot(x, aes(Education))
+g + geom_bar(aes(fill=Education), width = 0.6) + 
+  theme(axis.text.x = element_text(angle=0, vjust=0.6)) + 
+  labs(x = "Education" ,y = "#Absentees", title= "Absenteeism vs Education")
+
+```
+
+## Decision Tree Model
+**Basic Model**
+```{r}
+DT_model <- rpart(train_data_clean$Absenteeism.Hours.Group~., data = train_data_clean, method = 'class')
+rpart.plot(DT_model)
+predicted_values<-predict(DT_model, test_data, type = 'class')
+table_mat <- table(test_data$Absenteeism.Hours.Group, predicted_values)
+# Confusion Matrix
+print(table_mat)
+# Accuracy
+accuracy_dt<- sum(diag(table_mat)) / sum(table_mat) * 100
+print(accuracy_dt)
+```
+
+**Fine Tune Decision Tree Model**
+```{r}
+accuracy_tune <- function(DT_model) {
+      predicted_values <- predict(DT_model, test_data, type = 'class')
+      table_mat <- table(test_data$Absenteeism.Hours.Group, predicted_values)
+      accuracy_Test <- sum(diag(table_mat)) / sum(table_mat) * 100
+      print(table_mat)
+      accuracy_Test
+   }
+
+control <- rpart.control(minsplit = 2, minbucket = round(5 / 3), maxdepth = 20, cp = 0)
+tune_DT_model <- rpart(train_data_clean$Absenteeism.Hours.Group~., data = train_data_clean, method = 'class', control = control)
+
+
+accuracy_tune(tune_DT_model)
+```
+
+
+## Stochastic Vector Machines
+```{r}
+# Separating data into x_train, y_train, x_test, y_test
+x_train <- train_data_clean[-21]
+y_train <- train_data_clean[,21]
+x_test <- test_data[-21]
+y_test <- test_data[,21]
+
+# SVM model
+svm_model <- svm(train_data_clean$Absenteeism.Hours.Group ~ ., data=train_data_clean, kernel="polynomial", gamma=1, cost=1, degree = 5, tolerance = 0.001, cross = 10)
+print(svm_model)
+table_mat<-table(predict(svm_model, x_test), y_test)
+accuracy_test <- sum(diag(table_mat)) / sum(table_mat)*100
+print(accuracy_test)
+```
+
+## Random Forrest Model
+```{r}
+rf_model <- randomForest(train_data_clean$Absenteeism.Hours.Group ~ ., data = train_data_clean, ntree = 100, importance=TRUE)
+rf_model
+table_mat<-table(predict(rf_model, x_test), y_test)
+accuracy_test <- sum(diag(table_mat)) / sum(table_mat)*100
+print(accuracy_test)
+```
+
+## Principal Component Analysis
+**1. Calculating PC**
+```{r}
+x_train.pca <- prcomp(x_train, center=TRUE, scale. = TRUE)
+summary(x_train.pca)
+```
+**<br/>2. Plot PCs againt respective variance**
+```{r}
+#plot(method) 
+screeplot(x_train.pca, type="lines",col=2)
+```
+**<br/>3. Plot PCs and their respective cumulative proportions**
+```{r}
+#plot cum proportions
+vars <- apply(x_train.pca$x, 2, var) 
+props <- vars/sum(vars) 
+x_train.pca.vars <- cumsum(props) 
+plot(x_train.pca.vars, type="l")
+```
+**<br/>4. Plot for explained variance**
+```{r}
+g <- ggbiplot(x_train.pca, obs.scale = 1, var.scale = 1, groups = y_train, ellipse = TRUE, circle = TRUE)
+g <- g + scale_color_discrete((name = ''))
+g <- g + theme(legend.direction = 'horizontal', legend.position = 'top') 
+print(g)
+```
+**<br/>5. Generated PC for training set and testing set**
+```{r}
+x_train_trans = preProcess(x_train, method=c("BoxCox", "center", "scale", "pca"))
+PC = predict(x_train_trans, x_train)
+PC_test = predict(x_train_trans, x_test)
+```
+**<br/>6. Using PC with 95% cumulative proportion in SVM model**
+```{r}
+svm_model <- svm(y_train ~ ., data=PC, kernel="polynomial", gamma=1, cost=1, degree=5, tolerance = 0.001, cross = 10)
+print(svm_model)
+table_mat<-table(predict(svm_model, PC_test), y_test)
+accuracy_test <- sum(diag(table_mat)) / sum(table_mat)*100
+print(accuracy_test)
+```
+**<br/>6. Using PC with different number of components in the SVM model**
+```{r}
+
+PC2 = PC[1:10]
+PC_test2 = PC_test[1:10]
+svm_model <- svm(y_train ~ ., data=PC2, kernel="polynomial", gamma=1, cost=1, degree=5, tolerance = 0.001, cross = 10)
+print(svm_model)
+table_mat2<-table(predict(svm_model, PC_test2), y_test)
+accuracy_test2 <- sum(diag(table_mat2)) / sum(table_mat2)*100
+print(accuracy_test2)
+```
+
+
+#### Extra
+###Correlation
+```{r}
+library(corrplot)
+train_data_clean_corr <- train_data_clean
+train_data_clean_corr$Absenteeism.Hours.Group <- as.numeric(train_data_clean_corr$Absenteeism.Hours.Group)
+corrplot(cor(train_data_clean_corr), order = "hclust", tl.col = 'black', tl.cex = .75)
+```
+
+```{r}
+str(train_data_clean_corr)
+```
+
+```{r}
+train_data_clean_rm_cor <- train_data_clean
+train_data_clean_rm_cor$Weight <- NULL
+train_data_clean_rm_cor$Service.time <- NULL
+train_data_clean_rm_cor$Seasons <- NULL
+
+test_data_clean_rm_cor <- test_data
+test_data_clean_rm_cor$Weight <- NULL
+test_data_clean_rm_cor$Service.time <- NULL
+test_data_clean_rm_cor$Seasons <- NULL
+
+x_train_rm_cor <- train_data_clean_rm_cor[-17]
+y_train_rm_cor <- as.data.frame(train_data_clean_rm_cor[,17])
+x_test_rm_cor <- test_data_clean_rm_cor[-18]
+y_test_rm_cor <- as.data.frame(test_data_clean_rm_cor[,18])
+
+colnames(x_train_rm_cor) <- make.names(colnames(x_train_rm_cor))
+names(y_train_rm_cor) <- "Absenteeism.Hours.Group"
+colnames(x_test_rm_cor) <- make.names(colnames(x_test_rm_cor))
+names(y_test_rm_cor) <- "Absenteeism.Hours.Group"
+
+svm_model <- svm(y_train_rm_cor$Absenteeism.Hours.Group ~ ., data=x_train_rm_cor, kernel="polynomial", gamma=1, cost=1, tolerance = 0.001, cross = 10)
+svm_model
+table_mat<-table(predict(svm_model, x_test_rm_cor), y_test_rm_cor$Absenteeism.Hours.Group)
+accuracy_test <- sum(diag(table_mat)) / sum(table_mat)
+accuracy_test
+```
+
+
+```{r}
+rf_model <- randomForest(train_data_clean$Absenteeism.Hours.Group ~ ., data = train_data_clean, ntree = 100, importance=TRUE)
+rf_model
+```
+
+```{r}
+round(importance(rf_model), 3)
+varImpPlot(rf_model, pch = 20, main = "Importance of Variables")
+```
+
